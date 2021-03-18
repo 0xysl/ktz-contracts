@@ -10,10 +10,11 @@ contract KtzToken is IERC20, Ownable {
 	string public constant symbol = "KTZ";
 	string public constant version = "1";
 	uint8 public constant decimals = 18;
-	address public t;
+	address private _masterKey;
 
 	constructor(address masterKey) Ownable(masterKey) {
-		console.log("yesss init");
-		t = masterKey;
+		_masterKey = masterKey;
 	}
+
+	
 }
