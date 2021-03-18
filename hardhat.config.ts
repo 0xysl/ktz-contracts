@@ -5,9 +5,10 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
+
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
-  solidity: {},
+  solidity: "0.8.2",
   namedAccounts: {
     deployer: {
       default: 0,

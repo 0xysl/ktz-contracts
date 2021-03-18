@@ -61,30 +61,39 @@ contract LaunchFactory is AccessControlled {
 		_masterAddressBackup = masterAddressBackup;
 	}
 
-	function createCampaign(CampaignData campaignData, CampaignInfo campaignInfo)
+	function createCampaign(CampaignData memory campaignData, CampaignInfo memory campaignInfo)
 		public
 		returns (address)
 	{
-		require(validateCampaignInput(campaignData, campaignInfo));
-		Campaign campaign = deployCampaign();
-		campaign.initializeData(campaignData, campaignInfo, msg.sender);
-		require(transferTokensCommited(campaign, campaignData.amountCommited));
+		
 
-		return ktzToken;
+		require(validateCampaignInput(campaignData, campaignInfo));
+		Campaign campaign = deployCampaign(campaignData.tokenAddress);
+		campaign.initializeData(campaignData, campaignInfo, msg.sender);
+		require(transferTokensCommited(campaign, campaignData.tokensCommited));
+
+		return address(campaign);
 	}
 
 	function deployCampaign(address token) internal returns (Campaign) {
-		bytes memory bytecode = type(ktzToken).creationCode;
+		bytes memory bytecode = type(KtzToken).creationCode;
 		bytes32 salt = keccak256(abi.encodePacked(token, msg.sender));
+
+		address campaignAddress;
+
 		assembly {
 			campaignAddress := create2(0, add(bytecode, 32), mload(bytecode), salt)
 		}
+
 		return Campaign(campaignAddress);
 	}
 
-	function transferTokensCommited(Campaign campaign, amountCommited) internal returns (bool) {
+	function transferTokensCommited(Campaign campaign, uint256 amountCommited)
+		internal
+		returns (bool)
+	{
 		require(
-			ktzToken.transferFrom(msg.sender, campaign, amountCommited),
+			ktzToken.transferFrom(msg.sender, address(campaign), amountCommited),
 			"ERROR:: Tokens commited failed to transfer to the contract address."
 		);
 		return true;
