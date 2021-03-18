@@ -5,10 +5,6 @@ import "../types/CampaignInformation.sol";
 import "../types/CampaignStatus.sol";
 
 contract Campaign {
-    /**
-        @dev owekrwe
-        @param okowekfowke
-     */
     // ---------------- Constants -------------------------
     // The address of the factory responsible for producing and managing
     // this campaign

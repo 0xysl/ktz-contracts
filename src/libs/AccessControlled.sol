@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/utils/Context.sol";
  */
 
 contract AccessControlled is Context {
+	address private immutable _masterAddressBackup;
 	address private _masterAddress;
-	address private _masterAddressBackup;
 	address private _owner;
 
 	bool _paused;

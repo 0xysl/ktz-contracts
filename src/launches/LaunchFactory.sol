@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: UNLICENCED
 pragma solidity 0.8.2;
 
-import "../interfaces/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { AccessControlled } from "../libs/AccessControlled.sol";
+import { Campaign } from "./Campaign.sol";
+import { CampaignInfo, CampaignData } from "../types/Campaign.sol";
+import { validateCampaignInput } from "../validators/Campaign.sol";
 
-contract LaunchFactory is Ownable {
+contract LaunchFactory is AccessControlled {
 	// -------------- Access Control -----------------
 	address private _masterAddress;
 	address private _masterAddressBackup;
@@ -34,9 +38,12 @@ contract LaunchFactory is Ownable {
 	uint256 minAmountAllowedToRaise;
 	uint256 maxAmountAllowedToRaise;
 
+	// The minimum amount of time the owner is allowed to lock
+	// the liquidity for.
+	uint256 minimumLockTime;
+
 	// Time required before picking the next n nominees to list
-	// based on the amount of votes each aquired.
-	// Expressed in seconds.
+	// based on the amount of votes each aquired. Expressed in seconds.
 	uint256 nominationRoundInterval;
 
 	// The amount of candidates that will get listed after each
@@ -50,6 +57,13 @@ contract LaunchFactory is Ownable {
 	constructor(masterAddress, masterAddressBackup) {
 		_masterAddress = masterAdress;
 		_masterAddressBackup = masterAddressBackup;
+	}
+
+	function createCampaign(CampaignData campaignData, CampaignInfo campaignInfo)
+		public
+		returns (address)
+	{
+		require(validateCampaignInput(campaignData, campaignInfo));
 	}
 
 	function updateLaunchContract(address _launchContract) external onlyMaster {
