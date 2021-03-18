@@ -1,69 +1,37 @@
+/**
+ * @type import('hardhat/config').HardhatUserConfig
+ */
+
 import { HardhatUserConfig } from "hardhat/config";
-import "@nomiclabs/hardhat-waffle";
-import "@nomiclabs/hardhat-ethers";
-import "@nomiclabs/hardhat-etherscan";
-import "hardhat-deploy-ethers";
 import "hardhat-deploy";
-import "./deploy/env";
-import "dotenv/config";
-import { deployerAccount } from "./utils/accounts";
-
-const { DEPLOYER_PRIVATE_KEY, BSCSCAN_API_KEY } = process.env;
-
-const accounts = {
-  deployer: {
-    default: 0,
-    "*": `0x${DEPLOYER_PRIVATE_KEY}`,
-  },
-  feeCollector: {
-    default: 1,
-    31337: "0xa5610E1f289DbDe94F3428A9df22E8B518f65751",
-  },
-};
-
-const testnet = {
-  url: "https://data-seed-prebsc-1-s1.binance.org:8545",
-  chainId: 97,
-  accounts: [`0x${DEPLOYER_PRIVATE_KEY}`],
-  timeout: 10000,
-} as any;
-
+import "hardhat-deploy-ethers";
 const config: HardhatUserConfig = {
-  paths: {
-    deploy: "./deploy",
-    deployments: "./deployments",
-    artifacts: "./artifacts",
-  },
+  defaultNetwork: "hardhat",
+  solidity: {},
   namedAccounts: {
-    deployer: 0,
-    peer: 1,
+    deployer: {
+      default: 0,
+    },
   },
-  solidity: {
-    compilers: [
-      {
-        version: "0.8.2",
-      },
-      {
-        version: "0.7.0",
-      },
-      {
-        version: "0.6.0",
-      },
-    ],
+  paths: {
+    deploy: "deploy",
+    sources: "src",
   },
   networks: {
     hardhat: {
-      loggingEnabled: true,
-      saveDeployments: true,
       forking: {
         url: "https://bsc-dataseed.binance.org/",
       },
-      accounts: deployerAccount,
+      loggingEnabled: true,
+      accounts: [
+        {
+          privateKey:
+            "f5bebf7133e52cad8942cff8c0547e81f9e3239820a3dfed1a857cefd841d9f1",
+          balance: "10000000000000000000000",
+        },
+      ],
     },
-  },
-  etherscan: {
-    apiKey: BSCSCAN_API_KEY,
   },
 };
 
-module.exports = config;
+export default config;
