@@ -7,6 +7,8 @@ import { Campaign } from "./Campaign.sol";
 import { CampaignInfo, CampaignData } from "../types/Campaign.sol";
 import { validateCampaignInput } from "../validators/Campaign.sol";
 
+import { KtzToken } from "../KtzToken.sol";
+
 contract LaunchFactory is AccessControlled {
 	// -------------- Access Control -----------------
 	address private _masterAddress;
@@ -14,7 +16,7 @@ contract LaunchFactory is AccessControlled {
 
 	// -------------- Constants -----------------
 	address public pancakeswapRouter;
-	address public ktzAddress;
+	KtzToken public ktzToken;
 
 	// -------------- Internals -----------------
 	// Variables that represent the factory's state
@@ -54,8 +56,8 @@ contract LaunchFactory is AccessControlled {
 	// it becomes obsolete. Expressed in seconds.
 	uint256 durationBeforeBecommingObsolete;
 
-	constructor(masterAddress, masterAddressBackup) {
-		_masterAddress = masterAdress;
+	constructor(address masterAddress, address masterAddressBackup) {
+		_masterAddress = masterAddress;
 		_masterAddressBackup = masterAddressBackup;
 	}
 
@@ -64,6 +66,28 @@ contract LaunchFactory is AccessControlled {
 		returns (address)
 	{
 		require(validateCampaignInput(campaignData, campaignInfo));
+		Campaign campaign = deployCampaign();
+		campaign.initializeData(campaignData, campaignInfo, msg.sender);
+		require(transferTokensCommited(campaign, campaignData.amountCommited));
+
+		return ktzToken;
+	}
+
+	function deployCampaign(address token) internal returns (Campaign) {
+		bytes memory bytecode = type(ktzToken).creationCode;
+		bytes32 salt = keccak256(abi.encodePacked(token, msg.sender));
+		assembly {
+			campaignAddress := create2(0, add(bytecode, 32), mload(bytecode), salt)
+		}
+		return Campaign(campaignAddress);
+	}
+
+	function transferTokensCommited(Campaign campaign, amountCommited) internal returns (bool) {
+		require(
+			ktzToken.transferFrom(msg.sender, campaign, amountCommited),
+			"ERROR:: Tokens commited failed to transfer to the contract address."
+		);
+		return true;
 	}
 
 	function updateLaunchContract(address _launchContract) external onlyMaster {
