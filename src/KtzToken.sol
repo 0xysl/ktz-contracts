@@ -1,76 +1,162 @@
-// SPDX-License-Identifier: UNLICENCED
-pragma solidity 0.8.2;
+// SPDX-License-Identifier: MIT
 
-import "hardhat/console.sol";
+pragma solidity ^0.8.0;
+import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./libs/AccessControlled.sol";
 
-contract KtzToken is IERC20, AccessControlled {
-	string public constant name = "Ktz Token";
-	string public constant symbol = "KTZ";
-	string public constant version = "1";
-	uint8 public constant decimals = 18;
+contract KtzToken is Context, IERC20 {
+	mapping(address => uint256) private _balances;
+	mapping(address => mapping(address => uint256)) private _allowances;
 
-	uint256 public totalSupply;
-	uint256 initialSupply = 10e17;
-	mapping(address => mapping(address => uint256)) public allowances;
+	uint256 private _totalSupply = 10e12;
 
-	address private _masterKey;
-	mapping(address => uint256) public balances;
+	string private _name = "Kytazo Finance";
+	string private _symbol = "KTZ";
 
-	constructor() {
-		balances[msg.sender] = initialSupply;
-		totalSupply = initialSupply;
+	constructor(string memory name_, string memory symbol_) {
+		_name = name_;
+		_symbol = symbol_;
 	}
 
-	function transfer(address to, uint256 value) public override returns (bool success) {
-		require(
-			balances[msg.sender] >= value,
-			"INVALID_INPUT:: The transaction amount exceeds your balance."
-		);
-
-		balances[msg.sender] -= value;
-		balances[to] += value;
-
-		emit Transfer(msg.sender, to, value);
-		return true;
+	function name() public view virtual returns (string memory) {
+		return _name;
 	}
 
-	function transferFrom(
-		address from,
-		address to,
-		uint256 value
-	) public override returns (bool success) {
-		uint256 allowance = allowances[from][msg.sender];
-		require(
-			balances[from] >= value && allowance >= value,
-			"INVALID_INPUT:: Allowance limit exceeded."
-		);
-
-		balances[to] += value;
-		balances[from] -= value;
-		allowances[from][msg.sender] -= value;
-
-		emit Transfer(from, to, value);
-		return true;
+	function symbol() public view virtual returns (string memory) {
+		return _symbol;
 	}
 
-	function balanceOf(address owner) public view override returns (uint256 balance) {
-		return balances[owner];
+	function decimals() public view virtual returns (uint8) {
+		return 18;
 	}
 
-	function approve(address spender, uint256 value) public override returns (bool success) {
-		allowances[msg.sender][spender] = value;
-		emit Approval(msg.sender, spender, value);
+	function totalSupply() public view virtual override returns (uint256) {
+		return _totalSupply;
+	}
+
+	function balanceOf(address account) public view virtual override returns (uint256) {
+		return _balances[account];
+	}
+
+	function transfer(address recipient, uint256 amount)
+		public
+		virtual
+		override
+		returns (bool)
+	{
+		_transfer(_msgSender(), recipient, amount);
 		return true;
 	}
 
 	function allowance(address owner, address spender)
 		public
 		view
+		virtual
 		override
-		returns (uint256 remaining)
+		returns (uint256)
 	{
-		return allowances[owner][spender];
+		return _allowances[owner][spender];
 	}
+
+	function approve(address spender, uint256 amount) public virtual override returns (bool) {
+		_approve(_msgSender(), spender, amount);
+		return true;
+	}
+
+	function transferFrom(
+		address sender,
+		address recipient,
+		uint256 amount
+	) public virtual override returns (bool) {
+		_transfer(sender, recipient, amount);
+
+		uint256 currentAllowance = _allowances[sender][_msgSender()];
+		require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
+		_approve(sender, _msgSender(), currentAllowance - amount);
+
+		return true;
+	}
+
+	function increaseAllowance(address spender, uint256 addedValue)
+		public
+		virtual
+		returns (bool)
+	{
+		_approve(_msgSender(), spender, _allowances[_msgSender()][spender] + addedValue);
+		return true;
+	}
+
+	function decreaseAllowance(address spender, uint256 subtractedValue)
+		public
+		virtual
+		returns (bool)
+	{
+		uint256 currentAllowance = _allowances[_msgSender()][spender];
+		require(
+			currentAllowance >= subtractedValue,
+			"ERC20: decreased allowance below zero"
+		);
+		_approve(_msgSender(), spender, currentAllowance - subtractedValue);
+
+		return true;
+	}
+
+	function _transfer(
+		address sender,
+		address recipient,
+		uint256 amount
+	) internal virtual {
+		require(sender != address(0), "ERC20: transfer from the zero address");
+		require(recipient != address(0), "ERC20: transfer to the zero address");
+
+		_beforeTokenTransfer(sender, recipient, amount);
+
+		uint256 senderBalance = _balances[sender];
+		require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
+		_balances[sender] = senderBalance - amount;
+		_balances[recipient] += amount;
+
+		emit Transfer(sender, recipient, amount);
+	}
+
+	function _mint(address account, uint256 amount) internal virtual {
+		require(account != address(0), "ERC20: mint to the zero address");
+
+		_beforeTokenTransfer(address(0), account, amount);
+
+		_totalSupply += amount;
+		_balances[account] += amount;
+		emit Transfer(address(0), account, amount);
+	}
+
+	function _burn(address account, uint256 amount) internal virtual {
+		require(account != address(0), "ERC20: burn from the zero address");
+
+		_beforeTokenTransfer(account, address(0), amount);
+
+		uint256 accountBalance = _balances[account];
+		require(accountBalance >= amount, "ERC20: burn amount exceeds balance");
+		_balances[account] = accountBalance - amount;
+		_totalSupply -= amount;
+
+		emit Transfer(account, address(0), amount);
+	}
+
+	function _approve(
+		address owner,
+		address spender,
+		uint256 amount
+	) internal virtual {
+		require(owner != address(0), "ERC20: approve from the zero address");
+		require(spender != address(0), "ERC20: approve to the zero address");
+
+		_allowances[owner][spender] = amount;
+		emit Approval(owner, spender, amount);
+	}
+
+	function _beforeTokenTransfer(
+		address from,
+		address to,
+		uint256 amount
+	) internal virtual {}
 }

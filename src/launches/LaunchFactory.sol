@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { AccessControlled } from "../libs/AccessControlled.sol";
 import { Campaign } from "./Campaign.sol";
 import { CampaignInfo, CampaignData } from "../types/Campaign.sol";
+import { FactorySpecs } from "../types/Factory.sol";
 import { validateCampaignInput } from "../validators/Campaign.sol";
 
 import { KtzToken } from "../KtzToken.sol";
@@ -65,9 +66,20 @@ contract LaunchFactory is AccessControlled {
 		public
 		returns (address)
 	{
+		require(
+			validateCampaignInput(
+				campaignData,
+				campaignInfo,
+				FactorySpecs(
+					address(ktzToken),
+					participationAmountThreshhold,
+					minimumLockTime,
+					minAmountAllowedToRaise,
+					maxAmountAllowedToRaise
+				)
+			)
+		);
 		
-
-		require(validateCampaignInput(campaignData, campaignInfo));
 		Campaign campaign = deployCampaign(campaignData.tokenAddress);
 		campaign.initializeData(campaignData, campaignInfo, msg.sender);
 		require(transferTokensCommited(campaign, campaignData.tokensCommited));

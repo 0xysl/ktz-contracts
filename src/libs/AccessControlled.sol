@@ -23,8 +23,6 @@ contract AccessControlled is Context {
 		_masterAddressBackup = masterAddressBackup;
 		_masterAddress = masterAddress;
 		_owner = msgSender;
-
-		emit OwnershipTransferred(address(0), msgSender);
 	}
 
 	/* ------- State interpreters ------- */
