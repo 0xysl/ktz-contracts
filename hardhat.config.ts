@@ -5,6 +5,21 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
+import "@nomiclabs/hardhat-etherscan";
+import { resolve } from "path";
+import { config as envConfig } from "dotenv";
+envConfig({ path: resolve(__dirname, ".env") });
+
+// console.log(process.env.DEPLOYER_PRIVATE_KEY);
+
+const apiKey = process.env.BSCSCAN_API_KEY;
+
+const testnet = {
+  url: "https://data-seed-prebsc-1-s1.binance.org:8545",
+  accounts: [`0x${process.env.DEPLOYER_PRIVATE_KEY}`],
+  chainId: 97,
+  timeout: 10000,
+} as any;
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -32,6 +47,10 @@ const config: HardhatUserConfig = {
         },
       ],
     },
+    testnet,
+  },
+  etherscan: {
+    apiKey,
   },
 };
 

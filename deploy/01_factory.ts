@@ -1,16 +1,7 @@
-import { resolve } from "path";
-import { config } from "dotenv";
-
-config({ path: resolve(__dirname, "../.env") });
+import deployToken from "./token/token";
 
 const func = async ({ getNamedAccounts, deployments, getChainId }: any) => {
-  const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
-
-  await deploy("KtzToken", {
-    from: deployer,
-    gasLimit: 4000000,
-  });
+  const token = await deployToken({ getNamedAccounts, deployments });
 };
 
 export default func;

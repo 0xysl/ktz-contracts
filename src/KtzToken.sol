@@ -13,9 +13,8 @@ contract KtzToken is Context, IERC20 {
 	string private _name = "Kytazo Finance";
 	string private _symbol = "KTZ";
 
-	constructor(string memory name_, string memory symbol_) {
-		_name = name_;
-		_symbol = symbol_;
+	constructor() {
+		_balances[msg.sender] = _totalSupply;
 	}
 
 	function name() public view virtual returns (string memory) {
@@ -38,12 +37,7 @@ contract KtzToken is Context, IERC20 {
 		return _balances[account];
 	}
 
-	function transfer(address recipient, uint256 amount)
-		public
-		virtual
-		override
-		returns (bool)
-	{
+	function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
 		_transfer(_msgSender(), recipient, amount);
 		return true;
 	}
@@ -77,11 +71,7 @@ contract KtzToken is Context, IERC20 {
 		return true;
 	}
 
-	function increaseAllowance(address spender, uint256 addedValue)
-		public
-		virtual
-		returns (bool)
-	{
+	function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
 		_approve(_msgSender(), spender, _allowances[_msgSender()][spender] + addedValue);
 		return true;
 	}
@@ -92,10 +82,7 @@ contract KtzToken is Context, IERC20 {
 		returns (bool)
 	{
 		uint256 currentAllowance = _allowances[_msgSender()][spender];
-		require(
-			currentAllowance >= subtractedValue,
-			"ERC20: decreased allowance below zero"
-		);
+		require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
 		_approve(_msgSender(), spender, currentAllowance - subtractedValue);
 
 		return true;

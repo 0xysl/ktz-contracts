@@ -12,16 +12,17 @@ import { KtzToken } from "../KtzToken.sol";
 
 contract LaunchFactory is AccessControlled {
 	// -------------- Access Control -----------------
-	address private _masterAddress;
-	address private _masterAddressBackup;
+	address private masterAddress;
+	address private masterAddressBackup;
 
 	// -------------- Constants -----------------
-	address public pancakeswapRouter;
+	address public routerAddress;
+	address public ktzTokenAddress;
 	KtzToken public ktzToken;
 
 	// -------------- Internals -----------------
 	// Variables that represent the factory's state
-	address public launchContract;
+	// Campaign public campaign;
 	mapping(address => Campaign) public campgains;
 
 	//  -------------- Contraints -----------------
@@ -57,9 +58,31 @@ contract LaunchFactory is AccessControlled {
 	// it becomes obsolete. Expressed in seconds.
 	uint256 durationBeforeBecommingObsolete;
 
-	constructor(address masterAddress, address masterAddressBackup) {
-		_masterAddress = masterAddress;
-		_masterAddressBackup = masterAddressBackup;
+	// TODO: Setup backup address
+	constructor(
+		address _masterAddress,
+		address _masterAddressBackup,
+		address _routerAddress,
+		address _ktzTokenAddress,
+		uint256 _participationAmountThreshhold,
+		uint256 _minAmountAllowedToRaise,
+		uint256 _maxAmountAllowedToRaise,
+		uint256 _minimumLockTime,
+		uint256 _nominationRoundInterval,
+		uint256 _numberOfNomineesToList,
+		uint256 _durationBeforeBecommingObsolete
+	) AccessControlled(msg.sender, msg.sender) {
+		masterAddress = _masterAddress;
+		masterAddressBackup = _masterAddressBackup;
+		routerAddress = _routerAddress;
+		ktzTokenAddress = _ktzTokenAddress;
+		participationAmountThreshhold = _participationAmountThreshhold;
+		minAmountAllowedToRaise = _minAmountAllowedToRaise;
+		maxAmountAllowedToRaise = _maxAmountAllowedToRaise;
+		minimumLockTime = _minimumLockTime;
+		nominationRoundInterval = _nominationRoundInterval;
+		numberOfNomineesToList = _numberOfNomineesToList;
+		durationBeforeBecommingObsolete = _durationBeforeBecommingObsolete;
 	}
 
 	function createCampaign(CampaignData memory campaignData, CampaignInfo memory campaignInfo)
@@ -79,7 +102,7 @@ contract LaunchFactory is AccessControlled {
 				)
 			)
 		);
-		
+
 		Campaign campaign = deployCampaign(campaignData.tokenAddress);
 		campaign.initializeData(campaignData, campaignInfo, msg.sender);
 		require(transferTokensCommited(campaign, campaignData.tokensCommited));
@@ -111,12 +134,12 @@ contract LaunchFactory is AccessControlled {
 		return true;
 	}
 
-	function updateLaunchContract(address _launchContract) external onlyMaster {
-		require(
-			_launchContract != address(this),
-			"INVALID_INPUT:: Supplied implementation address doesn't differ from the one already in use."
-		);
+	// function updateLaunchContract(address _launchContract) external onlyMaster {
+	// 	require(
+	// 		_launchContract != address(this),
+	// 		"INVALID_INPUT:: Supplied implementation address doesn't differ from the one already in use."
+	// 	);
 
-		launchContract = _launchContract;
-	}
+	// 	launchContract = _launchContract;
+	// }
 }
