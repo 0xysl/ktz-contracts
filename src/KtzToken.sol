@@ -2,9 +2,12 @@
 
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract KtzToken is Context, IERC20 {
+import { IKTZ20 } from "./interfaces/IKTZ20.sol";
+
+contract KtzToken is Context, IKTZ20 {
+	address private _master;
+
 	mapping(address => uint256) private _balances;
 	mapping(address => mapping(address => uint256)) private _allowances;
 
@@ -17,15 +20,15 @@ contract KtzToken is Context, IERC20 {
 		_balances[msg.sender] = _totalSupply;
 	}
 
-	function name() public view virtual returns (string memory) {
+	function name() public view virtual override returns (string memory) {
 		return _name;
 	}
 
-	function symbol() public view virtual returns (string memory) {
+	function symbol() public view virtual override returns (string memory) {
 		return _symbol;
 	}
 
-	function decimals() public view virtual returns (uint8) {
+	function decimals() public view virtual override returns (uint8) {
 		return 18;
 	}
 
@@ -35,6 +38,10 @@ contract KtzToken is Context, IERC20 {
 
 	function balanceOf(address account) public view virtual override returns (uint256) {
 		return _balances[account];
+	}
+
+	function getOwner() public view virtual override returns (address) {
+		return _master;
 	}
 
 	function transfer(address recipient, uint256 amount) public virtual override returns (bool) {

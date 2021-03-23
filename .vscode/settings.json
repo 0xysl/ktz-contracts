@@ -1,4 +1,14 @@
 {
   "solidity.enabledAsYouTypeCompilationErrorCheck": true,
-  "solidity.compileUsingRemoteVersion": "v0.8.2+commit.661d1103"
+  "solidity.compileUsingRemoteVersion": "v0.8.2+commit.661d1103",
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/cache": true,
+    "**/artifacts": true,
+    "**/deployments": true,
+    "**/models": true,
+    "**/.env": true,
+    "**/.history": true,
+    "**/bin": true
+  }
 }
